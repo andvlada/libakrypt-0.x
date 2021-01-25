@@ -405,7 +405,19 @@ extern "C" {
      /*! \brief Внутреннее состояние линейного конгруэнтного генератора */
        ak_uint64 val;
      /*! \brief Внутреннее состояние xorshift32 генератора */
-       ak_uint32 value;
+       ak_uint32 value32;
+     /*! \brief Внутреннее состояние xorshift64 генератора */
+       ak_uint64 value64;
+     /*! \brief Внутреннее состояние xorshift96 генератора */
+       struct
+       {
+         ak_uint32 x, y, z;
+       } value96;
+     /*! \brief Внутреннее состояние xorshift128 генератора */
+        struct
+        {
+            ak_uint32 x, y, z, w;
+        } value128;
      /*! \brief Файловый дескриптор */
        int fd;
     #ifdef AK_HAVE_WINDOWS_H
@@ -420,6 +432,14 @@ extern "C" {
 /* ----------------------------------------------------------------------------------------------- */
 /*! \brief Инициализация контекста линейного конгруэнтного генератора псевдо-случайных чисел. */
  dll_export int ak_random_create_lcg( ak_random );
+ /*! \brief Инициализация контекста генератора псевдо-случайных чисел xorshift32. */
+  dll_export int ak_random_create_xorshift32( ak_random );
+ /*! \brief Инициализация контекста генератора псевдо-случайных чисел xorshift64. */
+  dll_export int ak_random_create_xorshift64( ak_random );
+ /*! \brief Инициализация контекста генератора псевдо-случайных чисел xorshift96. */
+  dll_export int ak_random_create_xorshift96( ak_random );
+ /*! \brief Инициализация контекста генератора псевдо-случайных чисел xorshift128. */
+  dll_export int ak_random_create_xorshift128( ak_random );
  /*! \brief Инициализация контекста генератора, считывающего случайные значения из заданного файла. */
  dll_export int ak_random_create_file( ak_random , const char * );
 #if defined(__unix__) || defined(__APPLE__)
@@ -440,9 +460,7 @@ extern "C" {
  dll_export int ak_random_ptr( ak_random , const ak_pointer , const ssize_t );
 /*! \brief Некриптографическая функция генерации случайного 64-х битного целого числа. */
  dll_export ak_uint64 ak_random_value( void );
- /*! \brief Инициализация начальных значений */
- ak_uint32 strt;
- ak_uint64 start, start_2;
+
  /*! \brief xorshift функция генерации случайного 32-х битного целого числа. */
  dll_export ak_uint64 ak_xorshift32(void);
  /*! \brief xorshift функция генерации случайного 64-х битного целого числа. */
@@ -1939,3 +1957,4 @@ extern "C" {
 //  new = alloc + create
 //  import = crete + set_key
 //  load = alloc + create + set_key
+

@@ -221,10 +221,10 @@
   if( size <= 0 ) return ak_error_message( ak_error_wrong_length, __func__ ,
                                                           "use initial vector with wrong length" );
  /* сначала начальное значение, потом цикл по всем элементам массива */
-  rnd->data.val = value[idx];
+  rnd->data.val = [idx];
   do {
         rnd->next( rnd );
-        rnd->data.val += value[idx];
+        rnd->data.val += [idx];
   } while( ++idx < size );
 
  return rnd->next( rnd );
@@ -234,7 +234,7 @@
  static int ak_random_lcg_random( ak_random rnd, const ak_pointer ptr, const ssize_t size )
 {
   ssize_t idx = 0;
-  ak_uint8 *value = ptr;
+  ak_uint8 * = ptr;
 
   if( rnd == NULL ) return ak_error_message( ak_error_null_pointer, __func__ ,
                                                       "use a null pointer to a random generator" );
@@ -243,7 +243,7 @@
   if( size <= 0 ) return ak_error_message( ak_error_wrong_length, __func__ ,
                                                            "use a data vector with wrong length" );
   lab_start:
-    value[idx] = (ak_uint8) ( rnd->data.val >> 16 );
+    [idx] = (ak_uint8) ( rnd->data.val >> 16 );
     rnd->next( rnd );
     if( ++idx < size ) goto lab_start;
 
@@ -505,82 +505,344 @@
  return ak_error_ok;
 }
 
-/* ----------------------------------------------------------------------------------------------- */
-/*                            реализация семейства генераторов xorshift                            */
-/* ----------------------------------------------------------------------------------------------- */
-
-/* ----------------------------------------------------------------------------------------------- */
-/*  инициализация начального состояния (start) генератора xorshoft64 и xorshift64*, 
-    начального состояния (start и start_2) генератора xorshoft64+ и начального состояния (strt)
-    генератора xorshift32
-    Инициализированное значение должно быть ненулевым                                              */
-/* ----------------------------------------------------------------------------------------------- */
- ak_uint32 strt;
- ak_uint64 start, start_2;
-
-/* ----------------------------------------------------------------------------------------------- */
-/*  Функция использует для генерации случайного значения заранее инициализированное начальное
-    состояние, 3 операции побитового сдвига и 3 операции побитового XOR
-    @return Функция возвращает сгенерированное случайное число размером 4 байт (32 бита)           */
-/* ----------------------------------------------------------------------------------------------- */
- ak_uint64 ak_xorshift32(void)
+ /* ----------------------------------------------------------------------------------------------- */
+ /*                               реализация класса xorshift32                                      */
+ /* ----------------------------------------------------------------------------------------------- */
+ static int ak_random_xorshift32_next( ak_random rnd )
  {
-     ak_uint32 help = strt;
-     help ^= help << 13;
-     help ^= help >> 17;
-     help ^= help << 5;
-     strt = help;
-     return help;
+     if( rnd == NULL ) return ak_error_message( ak_error_null_pointer, __func__ ,
+                                                      "use a null pointer to a random generator" );
+
+     rnd->data.value32 ^= rnd->data.value32 << 13;
+     rnd->data.value32 ^= rnd->data.value32 >> 17;
+     rnd->data.value32 ^= rnd->data.value32 << 5;
+
+     return ak_error_ok;
  }
 
-/* ----------------------------------------------------------------------------------------------- */
-/*  Функция использует для генерации случайного значения заранее инициализированное начальное 
-    состояние, 3 операции побитового сдвига и 3 операции побитового XOR
-    @return Функция возвращает сгенерированное случайное число размером 8 байт (64 бита)           */
-/* ----------------------------------------------------------------------------------------------- */
- ak_uint64 ak_xorshift64( void )
+ /* ----------------------------------------------------------------------------------------------- */
+ static int ak_random_xorshift32_randomize_ptr( ak_random rnd, const ak_pointer ptr,
+                                                const ssize_t size )
  {
-     ak_uint64 help = start;
-     help ^= help << 13;
-     help ^= help >> 7;
-     help ^= help << 17;
-     start = help;
-     return help;
+     ssize_t idx = 0;
+     ak_uint32 *value = ptr;
+
+     if( rnd == NULL ) return ak_error_message( ak_error_null_pointer, __func__ ,
+                                                         "use a null pointer to a random generator" );
+     if( ptr == NULL ) return ak_error_message( ak_error_null_pointer, __func__ ,
+                                                             "use a null pointer to initial vector" );
+     if( size <= 0 ) return ak_error_message( ak_error_wrong_length, __func__ ,
+                                                             "use initial vector with wrong length" );
+
+     rnd->data.value32 = value[idx];
+
+     return rnd->next( rnd );
  }
 
-/* ----------------------------------------------------------------------------------------------- */
-/*  Функция использует для генерации случайного значения заранее инициализированное начальное
-    состояние, 3 операции побитового сдвига и 4 операции побитового XOR
-    @return Функция возвращает сгенерированное случайное число размером 8 байт (64 бита)           */
-/* ----------------------------------------------------------------------------------------------- */
- ak_uint64 ak_xorshift64plus( void )
+ /* ----------------------------------------------------------------------------------------------- */
+ static int ak_random_xorshift32_random( ak_random rnd, const ak_pointer ptr, const ssize_t size )
  {
-     ak_uint64 help_1 = start;
-     ak_uint64 help_2 = start_2;
-     start = help_2;
-     help_1 ^= help_1 << 23;
-     help_1 ^= help_1 >> 17;
-     help_1 ^= help_2 ^ (help_2 >> 26);
-     start_2 = help_1;
-     return help_1 + help_2;
+      ssize_t idx = 0;
+      ak_uint8 *value = ptr;
+
+      if( rnd == NULL ) return ak_error_message( ak_error_null_pointer, __func__ ,
+                                                          "use a null pointer to a random generator" );
+      if( ptr == NULL ) return ak_error_message( ak_error_null_pointer, __func__ ,
+                                                                        "use a null pointer to data" );
+      if( size <= 0 ) return ak_error_message( ak_error_wrong_length, __func__ ,
+                                                               "use a data vector with wrong length" );
+      xor32_start:
+        value[idx] = (ak_uint32) ( rnd->data.value32 );
+        rnd->next( rnd );
+        if( ++idx < size ) goto xor32_start;
+
+     return ak_error_ok;
  }
 
+ /* ----------------------------------------------------------------------------------------------- */
+ /*! Данный генератор вырабатывает 32-битное значение при использовании 32-битного начального
+     состояния, реализуя 3 операции побитового сдвига и 3 операций побитового XOR
+     с константами 13, 17, 5.
 
-/* ----------------------------------------------------------------------------------------------- */
-/*  Функция использует для генерации случайного значения заранее инициализированное начальное
-    состояние, 3 операции побитового сдвига и 3 операции побитового XOR
-    @return Функция возвращает сгенерированное случайное число размером 8 байт (64 бита)           */
-/* ----------------------------------------------------------------------------------------------- */
- ak_uint64 ak_xorshift64star( void )
+     @param generator Контекст создаваемого генератора.
+     \return В случае успеха, функция возвращает \ref ak_error_ok. В противном случае
+             возвращается код ошибки.                                                               */
+ /* ----------------------------------------------------------------------------------------------- */
+ int ak_random_create_xorshift32( ak_random generator )
  {
-     ak_uint64 help = start;
-     help ^= help >> 12;
-     help ^= help << 25;
-     help ^= help >> 27;
-     start = help;
-     return help * 2685821657736338717LL;
+      int error = ak_error_ok;
+      ak_uint32 randseed = (ak_uint32) ak_random_value(); /* вырабатываем случайное число */
+
+      if(( error = ak_random_create( generator )) != ak_error_ok )
+        return ak_error_message( error, __func__ , "wrong initialization of random generator" );
+
+      generator->oid = ak_oid_find_by_name("xorshift32");
+      generator->next = ak_random_xorshift32_next;
+      generator->randomize_ptr = ak_random_xorshift32_randomize_ptr;
+      generator->random = ak_random_xorshift32_random;
+
+     /* для корректной работы присваиваем какое-то случайное начальное значение */
+      ak_random_xorshift32_randomize_ptr( generator, &randseed, sizeof( ak_uint32 ));
+
+     return error;
+
  }
 
-/* ----------------------------------------------------------------------------------------------- */
-/*                                                                                    ak_random.c  */
-/* ----------------------------------------------------------------------------------------------- */
+ /* ----------------------------------------------------------------------------------------------- */
+ /*                               реализация класса xorshift64                                      */
+ /* ----------------------------------------------------------------------------------------------- */
+ static int ak_random_xorshift64_next( ak_random rnd )
+ {
+     if( rnd == NULL ) return ak_error_message( ak_error_null_pointer, __func__ ,
+                                                      "use a null pointer to a random generator" );
+
+     rnd->data.value64 ^= rnd->data.value64 << 13;
+     rnd->data.value64 ^= rnd->data.value64 >> 7;
+     rnd->data.value64 ^= rnd->data.value64 << 17;
+
+     return ak_error_ok;
+ }
+
+ /* ----------------------------------------------------------------------------------------------- */
+ static int ak_random_xorshift64_randomize_ptr( ak_random rnd, const ak_pointer ptr,
+                                                const ssize_t size )
+ {
+     ssize_t idx = 0;
+     ak_uint64 *value = ptr;
+
+     if( rnd == NULL ) return ak_error_message( ak_error_null_pointer, __func__ ,
+                                                         "use a null pointer to a random generator" );
+     if( ptr == NULL ) return ak_error_message( ak_error_null_pointer, __func__ ,
+                                                             "use a null pointer to initial vector" );
+     if( size <= 0 ) return ak_error_message( ak_error_wrong_length, __func__ ,
+                                                             "use initial vector with wrong length" );
+
+     rnd->data.value64 = value[idx];
+
+     return rnd->next( rnd );
+ }
+
+ /* ----------------------------------------------------------------------------------------------- */
+ static int ak_random_xorshift64_random( ak_random rnd, const ak_pointer ptr, const ssize_t size )
+ {
+      ssize_t idx = 0;
+      ak_uint8 *value = ptr;
+
+      if( rnd == NULL ) return ak_error_message( ak_error_null_pointer, __func__ ,
+                                                          "use a null pointer to a random generator" );
+      if( ptr == NULL ) return ak_error_message( ak_error_null_pointer, __func__ ,
+                                                                        "use a null pointer to data" );
+      if( size <= 0 ) return ak_error_message( ak_error_wrong_length, __func__ ,
+                                                               "use a data vector with wrong length" );
+      xor64_start:
+        value[idx] = (ak_uint64) ( rnd->data.value64 );
+        rnd->next( rnd );
+        if( ++idx < size ) goto xor64_start;
+
+     return ak_error_ok;
+ }
+
+ /* ----------------------------------------------------------------------------------------------- */
+ /*! Данный генератор вырабатывает 64-битное значение при использовании 64-битного начального
+     состояния, реализуя 3 операции побитового сдвига и 3 операций побитового XOR
+     с константами 13, 7, 17.
+
+     @param generator Контекст создаваемого генератора.
+     \return В случае успеха, функция возвращает \ref ak_error_ok. В противном случае
+             возвращается код ошибки.                                                               */
+ /* ----------------------------------------------------------------------------------------------- */
+ int ak_random_create_xorshift64( ak_random generator )
+ {
+      int error = ak_error_ok;
+      ak_uint64 randseed = ak_random_value(); /* вырабатываем случайное число */
+
+      if(( error = ak_random_create( generator )) != ak_error_ok )
+        return ak_error_message( error, __func__ , "wrong initialization of random generator" );
+
+      generator->oid = ak_oid_find_by_name("xorshift64");
+      generator->next = ak_random_xorshift64_next;
+      generator->randomize_ptr = ak_random_xorshift64_randomize_ptr;
+      generator->random = ak_random_xorshift64_random;
+
+     /* для корректной работы присваиваем какое-то случайное начальное значение */
+      ak_random_xorshift64_randomize_ptr( generator, &randseed, sizeof( ak_uint64 ));
+
+     return error;
+ }
+
+ /* ----------------------------------------------------------------------------------------------- */
+ /*                               реализация класса xorshift96                                      */
+ /* ----------------------------------------------------------------------------------------------- */
+ static int ak_random_xorshift96_next( ak_random rnd )
+ {
+     ak_uint32 help;
+
+     if( rnd == NULL ) return ak_error_message( ak_error_null_pointer, __func__ ,
+                                                      "use a null pointer to a random generator" );
+
+     help = (rnd->data.value96.x ^ (rnd->data.value96.x << 3)) ^
+             (rnd->data.value96.y ^ (rnd->data.value96.y >> 19)) ^
+             (rnd->data.value96.z ^ (rnd->data.value96.z << 6));
+     rnd->data.value96.x = rnd->data.value96.y;
+     rnd->data.value96.y = rnd->data.value96.z;
+     rnd->data.value96.z = help;
+
+     return ak_error_ok;
+ }
+
+ /* ----------------------------------------------------------------------------------------------- */
+ static int ak_random_xorshift96_randomize_ptr( ak_random rnd, const ak_pointer ptr,
+                                                const ssize_t size )
+ {
+     ak_uint32 *value = ptr;
+
+     if( rnd == NULL ) return ak_error_message( ak_error_null_pointer, __func__ ,
+                                                         "use a null pointer to a random generator" );
+     if( ptr == NULL ) return ak_error_message( ak_error_null_pointer, __func__ ,
+                                                             "use a null pointer to initial vector" );
+
+     rnd->data.value96.x = (ak_uint32) value[0];
+     rnd->data.value96.y = (ak_uint32) value[1];
+     rnd->data.value96.z = (ak_uint32) value[2];
+
+     return rnd->next( rnd );
+ }
+
+ /* ----------------------------------------------------------------------------------------------- */
+ static int ak_random_xorshift96_random( ak_random rnd, const ak_pointer ptr, const ssize_t size )
+ {
+      ssize_t idx = 0;
+      ak_uint8 *value = ptr;
+
+      if( rnd == NULL ) return ak_error_message( ak_error_null_pointer, __func__ ,
+                                                          "use a null pointer to a random generator" );
+      if( ptr == NULL ) return ak_error_message( ak_error_null_pointer, __func__ ,
+                                                                        "use a null pointer to data" );
+      if( size <= 0 ) return ak_error_message( ak_error_wrong_length, __func__ ,
+                                                               "use a data vector with wrong length" );
+      xor96_start:
+        value[idx] = rnd->data.value96.z;
+        rnd->next( rnd );
+        if( ++idx < size ) goto xor96_start;
+
+     return ak_error_ok;
+ }
+
+ /* ----------------------------------------------------------------------------------------------- */
+ /*! Данный генератор вырабатывает 32-битное значение при использовании начального состояния,
+     представляющего собой тройку 32-битных значений (x, y, z), реализуя 3 операции побитового сдвига
+     и 5 операций побитового XOR с константами 3, 19, 6.
+
+     @param generator Контекст создаваемого генератора.
+     \return В случае успеха, функция возвращает \ref ak_error_ok. В противном случае
+             возвращается код ошибки.                                                               */
+ /* ----------------------------------------------------------------------------------------------- */
+ int ak_random_create_xorshift96( ak_random generator )
+ {
+      int error = ak_error_ok;
+      ak_uint32 randseed[3] = { (ak_uint32) ak_random_value(), (ak_uint32) ak_random_value(),
+              (ak_uint32) ak_random_value() }; /* вырабатываем случайные числа */
+
+      if(( error = ak_random_create( generator )) != ak_error_ok )
+        return ak_error_message( error, __func__ , "wrong initialization of random generator" );
+
+      generator->oid = ak_oid_find_by_name("xorshift96");
+      generator->next = ak_random_xorshift96_next;
+      generator->randomize_ptr = ak_random_xorshift96_randomize_ptr;
+      generator->random = ak_random_xorshift96_random;
+
+     /* для корректной работы присваиваем какое-то случайное начальное значение */
+      ak_random_xorshift96_randomize_ptr( generator, &randseed, sizeof( ak_uint32 ) );
+
+     return error;
+
+ }
+
+ /* ----------------------------------------------------------------------------------------------- */
+ /*                               реализация класса xorshift128                                     */
+ /* ----------------------------------------------------------------------------------------------- */
+ static int ak_random_xorshift128_next( ak_random rnd )
+ {
+     ak_uint32 help;
+
+     if( rnd == NULL ) return ak_error_message( ak_error_null_pointer, __func__ ,
+                                                      "use a null pointer to a random generator" );
+
+     help = rnd->data.value128.x ^ (rnd->data.value128.x << 11);
+     rnd->data.value128.x = rnd->data.value128.y;
+     rnd->data.value128.y = rnd->data.value128.z;
+     rnd->data.value128.z = rnd->data.value128.w;
+     rnd->data.value128.w = (rnd->data.value128.w ^ (rnd->data.value128.w >> 19)) ^ (help ^ (help >> 8));
+
+     return ak_error_ok;
+ }
+
+ /* ----------------------------------------------------------------------------------------------- */
+ static int ak_random_xorshift128_randomize_ptr( ak_random rnd, const ak_pointer ptr,
+                                                 const ssize_t size )
+ {
+     ak_uint32 *value = ptr;
+
+     if( rnd == NULL ) return ak_error_message( ak_error_null_pointer, __func__ ,
+                                                         "use a null pointer to a random generator" );
+     if( ptr == NULL ) return ak_error_message( ak_error_null_pointer, __func__ ,
+                                                             "use a null pointer to initial vector" );
+
+     rnd->data.value128.x = (ak_uint32) value[0];
+     rnd->data.value128.y = (ak_uint32) value[1];
+     rnd->data.value128.z = (ak_uint32) value[2];
+     rnd->data.value128.w = (ak_uint32) value[3];
+
+     return rnd->next( rnd );
+ }
+
+ /* ----------------------------------------------------------------------------------------------- */
+ static int ak_random_xorshift128_random( ak_random rnd, const ak_pointer ptr, const ssize_t size )
+ {
+      ssize_t idx = 0;
+      ak_uint8 *value = ptr;
+
+      if( rnd == NULL ) return ak_error_message( ak_error_null_pointer, __func__ ,
+                                                          "use a null pointer to a random generator" );
+      if( ptr == NULL ) return ak_error_message( ak_error_null_pointer, __func__ ,
+                                                                        "use a null pointer to data" );
+      if( size <= 0 ) return ak_error_message( ak_error_wrong_length, __func__ ,
+                                                               "use a data vector with wrong length" );
+      xor128_start:
+        value[idx] = rnd->data.value128.w;
+        rnd->next( rnd );
+        if( ++idx < size ) goto xor128_start;
+
+     return ak_error_ok;
+ }
+
+ /* ----------------------------------------------------------------------------------------------- */
+ /*! Данный генератор вырабатывает 32-битное значение при использовании начального состояния,
+     представляющего собой четверку 32-битных значений (x, y, z, w), реализуя 3 операции побитового
+     сдвига и 4 операции побитового XOR с константами 11, 19, 8.
+
+     @param generator Контекст создаваемого генератора.
+     \return В случае успеха, функция возвращает \ref ak_error_ok. В противном случае
+             возвращается код ошибки.                                                               */
+ /* ----------------------------------------------------------------------------------------------- */
+ int ak_random_create_xorshift128( ak_random generator )
+ {
+      int error = ak_error_ok;
+
+      /* вырабатываем случайные числа */
+      ak_uint32 randseed[4] = { (ak_uint32) ak_random_value(), (ak_uint32) ak_random_value(),
+              (ak_uint32) ak_random_value(), (ak_uint32) ak_random_value() };
+
+      if(( error = ak_random_create( generator )) != ak_error_ok )
+        return ak_error_message( error, __func__ , "wrong initialization of random generator" );
+
+      generator->oid = ak_oid_find_by_name("xorshift128");
+      generator->next = ak_random_xorshift128_next;
+      generator->randomize_ptr = ak_random_xorshift128_randomize_ptr;
+      generator->random = ak_random_xorshift128_random;
+
+     /* для корректной работы присваиваем какое-то случайное начальное значение */
+      ak_random_xorshift128_randomize_ptr( generator, &randseed, sizeof(ak_uint32) );
+
+     return error;
+ }

@@ -112,6 +112,8 @@
 /*! Константные значения имен идентификаторов */
  static const char *asn1_lcg_n[] =         { "lcg", NULL };
  static const char *asn1_lcg_i[] =         { "1.2.643.2.52.1.1.1", NULL };
+ static const char *asn1_xorshift32_n[] =         { "xorshift32", NULL };
+ static const char *asn1_xorshift32_i[] =         { "1.2.643.2.52.1.1.5", NULL };
 #if defined(__unix__) || defined(__APPLE__)
  static const char *asn1_dev_random_n[] =  { "dev-random", "/dev/random", NULL };
  static const char *asn1_dev_random_i[] =  { "1.2.643.2.52.1.1.2", NULL };
@@ -457,6 +459,26 @@ static struct oid libakrypt_oids[] =
   {{ sizeof( struct random ), (ak_function_create_object *)ak_random_create_lcg,
                               (ak_function_destroy_object *)ak_random_destroy, NULL, NULL, NULL },
                                                                 ak_object_undefined, NULL, NULL }},
+
+{ random_generator, algorithm, asn1_xorshift32_i, asn1_xorshift32_n, NULL,
+ {{ sizeof( struct random ), (ak_function_create_object *)ak_random_create_xorshift32,
+                             (ak_function_destroy_object *)ak_random_destroy, NULL, NULL, NULL },
+                                                               ak_object_undefined, NULL, NULL }},
+
+{ random_generator, algorithm, asn1_xorshift64_i, asn1_xorshift64_n, NULL,
+ {{ sizeof( struct random ), (ak_function_create_object *)ak_random_create_xorshift64,
+                             (ak_function_destroy_object *)ak_random_destroy, NULL, NULL, NULL },
+                                                               ak_object_undefined, NULL, NULL }},
+
+{ random_generator, algorithm, asn1_xorshift96_i, asn1_xorshift96_n, NULL,
+ {{ sizeof( struct random ), (ak_function_create_object *)ak_random_create_xorshift96,
+                             (ak_function_destroy_object *)ak_random_destroy, NULL, NULL, NULL },
+                                                               ak_object_undefined, NULL, NULL }},
+
+{ random_generator, algorithm, asn1_xorshift128_i, asn1_xorshift128_n, NULL,
+ {{ sizeof( struct random ), (ak_function_create_object *)ak_random_create_xorshift128,
+                             (ak_function_destroy_object *)ak_random_destroy, NULL, NULL, NULL },
+                                                               ak_object_undefined, NULL, NULL }},
 #if defined(__unix__) || defined(__APPLE__)
  { random_generator, algorithm, asn1_dev_random_i, asn1_dev_random_n, NULL,
   {{ sizeof( struct random ), (ak_function_create_object *)ak_random_create_random,
