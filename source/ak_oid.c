@@ -114,6 +114,12 @@
  static const char *asn1_lcg_i[] =         { "1.2.643.2.52.1.1.1", NULL };
  static const char *asn1_xorshift32_n[] =         { "xorshift32", NULL };
  static const char *asn1_xorshift32_i[] =         { "1.2.643.2.52.1.1.5", NULL };
+ static const char *asn1_xorshift64_n[] =         { "xorshift64", NULL };
+ static const char *asn1_xorshift64_i[] =         { "1.2.643.2.52.1.1.6", NULL };
+ static const char *asn1_xorshift96_n[] =         { "xorshift96", NULL };
+ static const char *asn1_xorshift96_i[] =         { "1.2.643.2.52.1.1.7", NULL };
+ static const char *asn1_xorshift128_n[] =         { "xorshift128", NULL };
+ static const char *asn1_xorshift128_i[] =         { "1.2.643.2.52.1.1.8", NULL };
 #if defined(__unix__) || defined(__APPLE__)
  static const char *asn1_dev_random_n[] =  { "dev-random", "/dev/random", NULL };
  static const char *asn1_dev_random_i[] =  { "1.2.643.2.52.1.1.2", NULL };
