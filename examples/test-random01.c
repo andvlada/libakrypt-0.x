@@ -1,24 +1,19 @@
-/* Тестовый пример для оценки скорости реализации некоторых
+/* Тестовый пример для проверки реализации xorshift
    генераторов псевдо-случайных чисел.
    Пример использует неэкспортируемые функции.
 
    test-random01.c
 */
 
- #include <time.h>
- #include <stdio.h>
- #include <string.h>
- #include <stdlib.h>
- #include <libakrypt.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <libakrypt.h>
 
-/* основная тестирующая функция */
- int test_function( ak_function_random create, const char *result )
-{ 
- clock_t time;
+int test_function32( ak_function_random create )
+{
  struct random generator;
- ak_uint8 seed[4] = { 0x13, 0xAE, 0x4F, 0x0E }; /* константа */
- int i = 0, retval = ak_true;
- ak_uint8 buffer[1024];
+ ak_uint32 seed[1] = { 2463534242 }; /* константа */
+ ak_uint32 buffer[4];
  const char *string = NULL;
 
  /* создаем генератор */
@@ -30,44 +25,128 @@
     ak_random_randomize( &generator, &seed, sizeof( seed ));
 
  /* теперь вырабатываем необходимый тестовый объем данных */
-  time = clock();
-  for( i = 0; i < 1024*4; i++ ) ak_random_ptr( &generator, buffer, 1024 );
-  time = clock() - time;
+  ak_random_ptr( &generator, buffer, 4 );
 
-  printf("%s (%f sec) ", string = ak_ptr_to_hexstr( buffer, 32, ak_false ),
-                                             (double)time / (double)CLOCKS_PER_SEC );
-
- /* проверка только для тех, кому устанавливали начальное значение */
-  if( result ) {
-    if( strncmp( result, string, 32 ) != 0 ) { printf("Wrong\n"); retval = ak_false; }
-     else { printf("Ok\n"); retval = ak_true; }
-  } else { printf("\n"); retval = ak_true; }
+ /* вывод результата */
+  for ( int i = 0; i < 4; i++ )
+  {
+      printf( "%u ", buffer[i]);
+  }
+  printf("\n\n");
 
   ak_random_destroy( &generator );
- return retval;
+
+  return ak_true;
+}
+
+int test_function64( ak_function_random create )
+{
+ struct random generator;
+ ak_uint64 seed[1] = { 88172645463325252LL }; /* константа */
+ ak_uint32 buffer[4];
+ const char *string = NULL;
+
+ /* создаем генератор */
+  create( &generator );
+  printf( "%s: ", generator.oid->name[0] ); fflush( stdout );
+
+ /* инициализируем константным значением */
+  if( generator.randomize_ptr != NULL )
+    ak_random_randomize( &generator, &seed, sizeof( seed ));
+
+ /* теперь вырабатываем необходимый тестовый объем данных */
+  ak_random_ptr( &generator, buffer, 4 );
+
+ /* вывод результата */
+  for ( int i = 0; i < 4; i++ )
+  {
+      printf( "%u ", buffer[i]);
+  }
+  printf("\n\n");
+
+  ak_random_destroy( &generator );
+
+  return ak_true;
+}
+
+int test_function96( ak_function_random create )
+{
+ struct random generator;
+ ak_uint64 seed[3] = { 123456789, 362436069, 521288629 }; /* константа */
+ ak_uint32 buffer[4];
+ const char *string = NULL;
+
+ /* создаем генератор */
+  create( &generator );
+  printf( "%s: ", generator.oid->name[0] ); fflush( stdout );
+
+ /* инициализируем константным значением */
+  if( generator.randomize_ptr != NULL )
+    ak_random_randomize( &generator, &seed, sizeof( seed ));
+
+ /* теперь вырабатываем необходимый тестовый объем данных */
+  ak_random_ptr( &generator, buffer, 4 );
+
+ /* вывод результата */
+  for ( int i = 0; i < 4; i++ )
+  {
+      printf( "%u ", buffer[i]);
+  }
+  printf("\n\n");
+
+  ak_random_destroy( &generator );
+
+  return ak_true;
+}
+
+int test_function128( ak_function_random create )
+{
+ struct random generator;
+ ak_uint64 seed[4] = { 123456789, 362436069, 521288629, 88675123 }; /* константа */
+ ak_uint32 buffer[4];
+ const char *string = NULL;
+
+ /* создаем генератор */
+  create( &generator );
+  printf( "%s: ", generator.oid->name[0] ); fflush( stdout );
+
+ /* инициализируем константным значением */
+  if( generator.randomize_ptr != NULL )
+    ak_random_randomize( &generator, &seed, sizeof( seed ));
+
+ /* теперь вырабатываем необходимый тестовый объем данных */
+  ak_random_ptr( &generator, buffer, 4 );
+
+ /* вывод результата */
+  for ( int i = 0; i < 4; i++ )
+  {
+      printf( "%u ", buffer[i]);
+  }
+  printf("\n\n");
+
+  ak_random_destroy( &generator );
+
+  return ak_true;
 }
 
  int main( void )
 {
  int error = EXIT_SUCCESS;
 
- printf("random generators speed test for libakrypt, version %s\n", ak_libakrypt_version( ));
+ printf("xorshift random generators test for libakrypt, version %s\n", ak_libakrypt_version( ));
  if( !ak_libakrypt_create( NULL )) return ak_libakrypt_destroy();
 
  /* последовательно запускаем генераторы на тестирование */
-   if( test_function( ak_random_create_lcg,
-      "47b7ef2b729133a3e9853e0f4ffe040154a7622b7827e71bc6e48dff98c27f61" ) != ak_true )
+   if( test_function32( ak_random_create_xorshift32 ) != ak_true )
      error = EXIT_FAILURE;
-
-#ifdef _WIN32
- if( test_function( ak_random_create_winrtl, NULL ) != ak_true ) error = EXIT_FAILURE;
-#endif
-#if defined(__unix__) || defined(__APPLE__)
- printf("using /dev/random, wait please ...\n");
- if( test_function( ak_random_create_random, NULL ) != ak_true ) error = EXIT_FAILURE;
- if( test_function( ak_random_create_urandom, NULL ) != ak_true ) error = EXIT_FAILURE;
-#endif
+   if( test_function64( ak_random_create_xorshift64 ) != ak_true )
+     error = EXIT_FAILURE;
+   if( test_function96( ak_random_create_xorshift96 ) != ak_true )
+     error = EXIT_FAILURE;
+   if( test_function128( ak_random_create_xorshift128 ) != ak_true )
+     error = EXIT_FAILURE;
 
  ak_libakrypt_destroy();
  return error;
 }
+
