@@ -221,10 +221,10 @@
   if( size <= 0 ) return ak_error_message( ak_error_wrong_length, __func__ ,
                                                           "use initial vector with wrong length" );
  /* сначала начальное значение, потом цикл по всем элементам массива */
-  rnd->data.val = [idx];
+  rnd->data.val = value[idx];
   do {
         rnd->next( rnd );
-        rnd->data.val += [idx];
+        rnd->data.val += value[idx];
   } while( ++idx < size );
 
  return rnd->next( rnd );
@@ -234,7 +234,7 @@
  static int ak_random_lcg_random( ak_random rnd, const ak_pointer ptr, const ssize_t size )
 {
   ssize_t idx = 0;
-  ak_uint8 * = ptr;
+  ak_uint8 *value = ptr;
 
   if( rnd == NULL ) return ak_error_message( ak_error_null_pointer, __func__ ,
                                                       "use a null pointer to a random generator" );
@@ -243,7 +243,7 @@
   if( size <= 0 ) return ak_error_message( ak_error_wrong_length, __func__ ,
                                                            "use a data vector with wrong length" );
   lab_start:
-    [idx] = (ak_uint8) ( rnd->data.val >> 16 );
+    value[idx] = (ak_uint8) ( rnd->data.val >> 16 );
     rnd->next( rnd );
     if( ++idx < size ) goto lab_start;
 
