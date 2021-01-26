@@ -543,7 +543,7 @@
  static int ak_random_xorshift32_random( ak_random rnd, const ak_pointer ptr, const ssize_t size )
  {
       ssize_t idx = 0;
-      ak_uint8 *value = ptr;
+      ak_uint32 *value = ptr;
 
       if( rnd == NULL ) return ak_error_message( ak_error_null_pointer, __func__ ,
                                                           "use a null pointer to a random generator" );
@@ -626,7 +626,7 @@
  static int ak_random_xorshift64_random( ak_random rnd, const ak_pointer ptr, const ssize_t size )
  {
       ssize_t idx = 0;
-      ak_uint8 *value = ptr;
+      ak_uint64 *value = ptr;
 
       if( rnd == NULL ) return ak_error_message( ak_error_null_pointer, __func__ ,
                                                           "use a null pointer to a random generator" );
@@ -712,7 +712,7 @@
  static int ak_random_xorshift96_random( ak_random rnd, const ak_pointer ptr, const ssize_t size )
  {
       ssize_t idx = 0;
-      ak_uint8 *value = ptr;
+      ak_uint32 *value = ptr;
 
       if( rnd == NULL ) return ak_error_message( ak_error_null_pointer, __func__ ,
                                                           "use a null pointer to a random generator" );
@@ -800,7 +800,7 @@
  static int ak_random_xorshift128_random( ak_random rnd, const ak_pointer ptr, const ssize_t size )
  {
       ssize_t idx = 0;
-      ak_uint8 *value = ptr;
+      ak_uint32 *value = ptr;
 
       if( rnd == NULL ) return ak_error_message( ak_error_null_pointer, __func__ ,
                                                           "use a null pointer to a random generator" );
