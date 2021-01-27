@@ -1,7 +1,6 @@
 /* Тестовый пример для проверки реализации xorshift
    генераторов псевдо-случайных чисел.
    Пример использует неэкспортируемые функции.
-
    test-random01.c
 */
 
@@ -14,7 +13,6 @@ int test_function32( ak_function_random create )
  struct random generator;
  ak_uint32 seed[1] = { 2463534242 }; /* константа */
  ak_uint32 buffer[4];
- const char *string = NULL;
 
  /* создаем генератор */
   create( &generator );
@@ -43,8 +41,7 @@ int test_function64( ak_function_random create )
 {
  struct random generator;
  ak_uint64 seed[1] = { 88172645463325252LL }; /* константа */
- ak_uint32 buffer[4];
- const char *string = NULL;
+ ak_uint64 buffer[4];
 
  /* создаем генератор */
   create( &generator );
@@ -72,9 +69,8 @@ int test_function64( ak_function_random create )
 int test_function96( ak_function_random create )
 {
  struct random generator;
- ak_uint64 seed[3] = { 123456789, 362436069, 521288629 }; /* константа */
+ ak_uint32 seed[3] = { 123456789, 362436069, 521288629 }; /* константа */
  ak_uint32 buffer[4];
- const char *string = NULL;
 
  /* создаем генератор */
   create( &generator );
@@ -102,9 +98,8 @@ int test_function96( ak_function_random create )
 int test_function128( ak_function_random create )
 {
  struct random generator;
- ak_uint64 seed[4] = { 123456789, 362436069, 521288629, 88675123 }; /* константа */
+ ak_uint32 seed[4] = { 123456789, 362436069, 521288629, 88675123 }; /* константа */
  ak_uint32 buffer[4];
- const char *string = NULL;
 
  /* создаем генератор */
   create( &generator );
