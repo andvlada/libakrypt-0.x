@@ -460,15 +460,6 @@ extern "C" {
  dll_export int ak_random_ptr( ak_random , const ak_pointer , const ssize_t );
 /*! \brief Некриптографическая функция генерации случайного 64-х битного целого числа. */
  dll_export ak_uint64 ak_random_value( void );
-
- /*! \brief xorshift функция генерации случайного 32-х битного целого числа. */
- dll_export ak_uint64 ak_xorshift32(void);
- /*! \brief xorshift функция генерации случайного 64-х битного целого числа. */
- dll_export ak_uint64 ak_xorshift64(void);
- /*! \brief xorshift+ функция генерации случайного 64-х битного целого числа. */
- dll_export ak_uint64 ak_xorshift64plus(void);
- /*! \brief xorshift* функция генерации случайного 64-х битного целого числа. */
- dll_export ak_uint64 ak_xorshift64star(void);
 /*! \brief Уничтожение данных, хранящихся в полях структуры struct random. */
  int ak_random_destroy( ak_random );
 /*! \brief Функция очистки памяти. */
